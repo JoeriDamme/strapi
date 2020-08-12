@@ -39,9 +39,9 @@ const isRelation = attribute =>
  * @param {Object} context.component - the associated component
  */
 const formatAttributes = model => {
-  const { getEnumerableAttributes } = utils.contentTypes;
+  const { getVisibleAttributes } = utils.contentTypes;
 
-  return getEnumerableAttributes(model).reduce((acc, key) => {
+  return getVisibleAttributes(model).reduce((acc, key) => {
     acc[key] = formatAttribute(key, model.attributes[key], { model });
     return acc;
   }, {});

@@ -13,7 +13,11 @@ const { createParser } = require('./parser');
 const { createFormatter } = require('./formatter');
 const populateFetch = require('./populate');
 
-const { PUBLICATION_ATTRIBUTES, CREATOR_ATTRIBUTES } = contentTypes.constants;
+const {
+  PUBLISHED_AT_ATTRIBUTE,
+  CREATED_BY_ATTRIBUTE,
+  UPDATED_BY_ATTRIBUTE,
+} = contentTypes.constants;
 
 const PIVOT_PREFIX = '_pivot_';
 
@@ -117,20 +121,22 @@ module.exports = ({ models, target }, ctx) => {
     });
 
     if (!definition.uid.startsWith('strapi::') && definition.modelType !== 'component') {
-      PUBLICATION_ATTRIBUTES.forEach(key => {
-        definition.attributes[key] = {
-          type: 'datetime',
-          configurable: false,
-        };
-      });
+      definition.attributes[PUBLISHED_AT_ATTRIBUTE] = {
+        type: 'datetime',
+        configurable: false,
+      };
 
-      CREATOR_ATTRIBUTES.forEach(key => {
-        definition.attributes[key] = {
-          model: 'user',
-          plugin: 'admin',
-          configurable: false,
-        };
-      });
+      definition.attributes[CREATED_BY_ATTRIBUTE] = {
+        model: 'user',
+        plugin: 'admin',
+        configurable: false,
+      };
+
+      definition.attributes[UPDATED_BY_ATTRIBUTE] = {
+        model: 'user',
+        plugin: 'admin',
+        configurable: false,
+      };
     }
 
     // Add every relationships to the loaded model for Bookshelf.

@@ -78,7 +78,7 @@ const isVisible = (schema, name) => {
 };
 
 const isPublicationField = name => {
-  return contentTypes.constants.PUBLICATION_ATTRIBUTES.includes(name);
+  return contentTypes.constants.PUBLISHED_AT_ATTRIBUTE.includes(name);
 };
 
 const isTimestamp = (schema, name) => {

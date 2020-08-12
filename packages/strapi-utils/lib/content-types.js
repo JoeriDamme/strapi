@@ -2,35 +2,51 @@
 
 const _ = require('lodash');
 
-const PUBLICATION_ATTRIBUTES = ['published_at'];
-const CREATOR_ATTRIBUTES = ['created_by', 'updated_by'];
+const ID_ATTRIBUTE = 'id';
+const PUBLISHED_AT_ATTRIBUTE = 'published_at';
+const CREATED_BY_ATTRIBUTE = 'created_by';
+const UPDATED_BY_ATTRIBUTE = 'updated_by';
 
-const NON_WRITABLE_ATTRIBUTES = ['id', 'created_by', 'updated_by', 'published_at'];
-const NON_ENUMERABLE_ATTRIBUTES = ['id', 'created_by', 'updated_by', 'published_at'];
+const HIDDEN_ATTRIBUTES = [
+  ID_ATTRIBUTE,
+  PUBLISHED_AT_ATTRIBUTE,
+  CREATED_BY_ATTRIBUTE,
+  UPDATED_BY_ATTRIBUTE,
+];
+
+// making it clear hidden attributes could still be writable
+const NON_WRITABLE_ATTRIBUTES = [...HIDDEN_ATTRIBUTES];
 
 const constants = {
-  PUBLICATION_ATTRIBUTES,
-  CREATOR_ATTRIBUTES,
+  PUBLISHED_AT_ATTRIBUTE,
+  CREATED_BY_ATTRIBUTE,
+  UPDATED_BY_ATTRIBUTE,
 };
 
 const getTimestamps = model => {
-  return _.get(model, ['options.timestamps'], []);
+  const timestamps = _.get(model, 'options.timestamps', []);
+
+  if (!_.isArray(timestamps)) {
+    return [];
+  }
+
+  return timestamps;
 };
 
 const getNonWritableAttributes = model => {
   return _.uniq([model.primaryKey, ...getTimestamps(model), ...NON_WRITABLE_ATTRIBUTES]);
 };
 
-const getNonEnumerableAttributes = model => {
-  return _.uniq([model.primaryKey, ...getTimestamps(model), ...NON_ENUMERABLE_ATTRIBUTES]);
+const getNonVisibleAttributes = model => {
+  return _.uniq([model.primaryKey, ...getTimestamps(model), ...HIDDEN_ATTRIBUTES]);
 };
 
-const getEnumerableAttributes = model => {
-  return _.difference(_.keys(model.attributes), getNonEnumerableAttributes(model));
+const getVisibleAttributes = model => {
+  return _.difference(_.keys(model.attributes), getNonVisibleAttributes(model));
 };
 
 module.exports = {
   constants,
   getNonWritableAttributes,
-  getEnumerableAttributes,
+  getVisibleAttributes,
 };

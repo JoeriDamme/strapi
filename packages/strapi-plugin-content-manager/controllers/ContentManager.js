@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+const { contentTypes: contentTypesUtils } = require('strapi-utils');
 
 const parseMultipartBody = require('../utils/parse-multipart');
 const {
@@ -8,6 +9,12 @@ const {
   validateCheckUIDAvailabilityInput,
   validateUIDField,
 } = require('./validation');
+
+const {
+  PUBLISHED_AT_ATTRIBUTE,
+  CREATED_BY_ATTRIBUTE,
+  UPDATED_BY_ATTRIBUTE,
+} = contentTypesUtils.constants;
 
 const ACTIONS = {
   read: 'plugins::content-manager.explorer.read',
@@ -200,9 +207,9 @@ module.exports = {
         {
           data: {
             ...sanitize(data),
-            created_by: user.id,
-            updated_by: user.id,
-            published_at: options.draftAndPublished ? null : new Date(),
+            [CREATED_BY_ATTRIBUTE]: user.id,
+            [UPDATED_BY_ATTRIBUTE]: user.id,
+            [PUBLISHED_AT_ATTRIBUTE]: options.draftAndPublished ? null : new Date(),
           },
           files,
         },
@@ -246,12 +253,21 @@ module.exports = {
 
     const { data, files } = ctx.is('multipart') ? parseMultipartBody(ctx) : { data: body };
 
-    const sanitizedData = sanitize(_.omit(data, ['created_by', 'published_at']));
+    const writableData = _.omit(
+      data,
+      contentTypesUtils.getNonWritableAttributes(strapi.db.getModel(model))
+    );
 
     try {
       const result = await contentManagerService.edit(
         { id },
-        { data: { ...sanitizedData, updated_by: user.id }, files },
+        {
+          data: {
+            ...sanitize(writableData),
+            [UPDATED_BY_ATTRIBUTE]: user.id,
+          },
+          files,
+        },
         { model }
       );
 
@@ -355,7 +371,7 @@ module.exports = {
       : await contentManagerServices.contenttypes.getConfiguration(modelDef.uid);
 
     const field = _.get(modelConfig, `metadatas.${targetField}.edit.mainField`, 'id');
-    const pickFields = [field, 'id', target.primaryKey, 'published_at'];
+    const pickFields = [field, 'id', target.primaryKey, PUBLISHED_AT_ATTRIBUTE];
     const sanitize = d => _.pick(d, pickFields);
 
     ctx.body = _.isArray(entities) ? entities.map(sanitize) : sanitize(entities);
