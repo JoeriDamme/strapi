@@ -11,15 +11,13 @@ const createCoreService = ({ model, strapi }) => {
   const serviceFactory =
     model.kind === 'singleType' ? createSingleTypeService : createCollectionTypeService;
 
-  const service = serviceFactory({ model, strapi });
-
-  return _.extend(service, withSanitize({ model }));
+  return serviceFactory({ model, strapi });
 };
 
 /**
  * Mixins
  */
-const withSanitize = ({ model }) => {
+const createUtils = ({ model }) => {
   const { getNonWritableAttributes } = utils.contentTypes;
 
   return {
@@ -32,6 +30,7 @@ const withSanitize = ({ model }) => {
  */
 const createSingleTypeService = ({ model, strapi }) => {
   const { modelName } = model;
+  const { sanitizeInput } = createUtils({ model });
 
   return {
     /**
@@ -50,7 +49,7 @@ const createSingleTypeService = ({ model, strapi }) => {
      */
     async createOrUpdate(data, { files } = {}) {
       const entity = await this.find();
-      const sanitizedData = this.sanitizeInput(data, model);
+      const sanitizedData = sanitizeInput(data, model);
 
       if (!entity) {
         return strapi.entityService.create({ data: sanitizedData, files }, { model: modelName });
@@ -89,6 +88,7 @@ const createSingleTypeService = ({ model, strapi }) => {
  */
 const createCollectionTypeService = ({ model, strapi }) => {
   const { modelName } = model;
+  const { sanitizeInput } = createUtils({ model });
 
   return {
     /**
@@ -127,7 +127,7 @@ const createCollectionTypeService = ({ model, strapi }) => {
      */
 
     create(data, { files } = {}) {
-      const sanitizedData = this.sanitizeInput(data, model);
+      const sanitizedData = sanitizeInput(data, model);
       return strapi.entityService.create({ data: sanitizedData, files }, { model: modelName });
     },
 
@@ -138,7 +138,7 @@ const createCollectionTypeService = ({ model, strapi }) => {
      */
 
     update(params, data, { files } = {}) {
-      const sanitizedData = this.sanitizeInput(data, model);
+      const sanitizedData = sanitizeInput(data, model);
       return strapi.entityService.update(
         { params, data: sanitizedData, files },
         { model: modelName }
