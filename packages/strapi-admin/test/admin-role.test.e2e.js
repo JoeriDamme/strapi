@@ -45,7 +45,7 @@ describe('Role CRUD End to End', () => {
         {
           name: 'Author',
           code: 'strapi-author',
-          description: 'Authors can manage and publish the content they created.',
+          description: 'Authors can manage the content they have created.',
           usersCount: 0,
         },
       ];
